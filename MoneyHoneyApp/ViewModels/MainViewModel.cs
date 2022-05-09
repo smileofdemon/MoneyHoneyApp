@@ -15,17 +15,33 @@ namespace MoneyHoneyApp.ViewModels
     {
         private double _UAH;
         private double _EUR;
+        private double _less_EUR;
         private bool _isUpdate = true;
         private const int UPDATE_PERIOD = 1000; // update data every 1 second, add to setting
 
-        public double UAH { get => _UAH; }
-        public double EUR { get => _EUR; }
+        public double UAH { get => _UAH; protected set => SetProperty(ref _UAH, value); }
+        public double EUR { get => _EUR; protected set => SetProperty(ref _EUR, value); }
+        public double Less_EUR { get => _less_EUR; protected set => SetProperty(ref _less_EUR, value); }
+        public Command<object> SetEURCommand { get; }
 
         public MainViewModel()
         {
             Title = "Главная";
             _UAH = 1;
+            SetEURCommand = new Command<object>(UpdateLessEUR);
+            if (Application.Current.Properties.ContainsKey("Less_EUR"))
+                Less_EUR = Convert.ToDouble(Application.Current.Properties["Less_EUR"]);
+
             _ = Task.Run(() => GetValuesAsync());
+        }
+
+        public void UpdateLessEUR(object newValue)
+        {
+            var textBox = (Entry)newValue;
+            textBox.Unfocus();
+            Less_EUR = Convert.ToDouble(textBox.Text);
+            Application.Current.Properties["Less_EUR"] = Less_EUR;
+            textBox.Text = "";
         }
 
         private async Task GetValuesAsync()
@@ -33,7 +49,7 @@ namespace MoneyHoneyApp.ViewModels
             while (_isUpdate)
             {
                 var url = @"https://www.revolut.com/api/exchange/quote";
-                var parameters = @"?amount=100000&country=DE&fromCurrency=UAH&isRecipientAmount=false&toCurrency=EUR";
+                var parameters = @"?amount=100&country=DE&fromCurrency=UAH&isRecipientAmount=false&toCurrency=EUR";
 
                 HttpClient client = new HttpClient();
                 client.BaseAddress = new Uri(url);
@@ -44,10 +60,19 @@ namespace MoneyHoneyApp.ViewModels
                 {
                     var jsonString = await response.Content.ReadAsStringAsync();
                     RevolutResult myDeserializedClass = JsonConvert.DeserializeObject<RevolutResult>(jsonString);
-                    _EUR = myDeserializedClass.rate.rate;
+                    EUR = myDeserializedClass.rate.rate;
+                    CheckValue();
                 }
 
                 Thread.Sleep(UPDATE_PERIOD);
+            }
+        }
+
+        private void CheckValue()
+        {
+            if (EUR <= Less_EUR)
+            {
+
             }
         }
     }
