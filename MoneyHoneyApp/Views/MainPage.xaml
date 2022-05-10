@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MoneyHoneyApp.Views.MainPage"
              xmlns:vm="clr-namespace:MoneyHoneyApp.ViewModels"
-             Title="{Binding Title}">
+             Title="Главная">
 
     <ContentPage.BindingContext>
         <vm:MainViewModel />
@@ -20,14 +20,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <StackLayout BackgroundColor="{StaticResource Accent}" VerticalOptions="FillAndExpand" HorizontalOptions="Fill">
-            <StackLayout Orientation="Horizontal" HorizontalOptions="Center" VerticalOptions="Center">
-                <ContentView Padding="0,40,0,40" VerticalOptions="FillAndExpand">
-                    <Image Source="xamarin_logo.png" VerticalOptions="Center" HeightRequest="64" />
-                </ContentView>
-            </StackLayout>
-        </StackLayout>
-        <ScrollView Grid.Row="1">
+        <ScrollView Grid.Row="0">
             <StackLayout Orientation="Vertical" Padding="30,24,30,24" Spacing="10">
                 <Label Text="На данный момент" FontSize="Title" HorizontalOptions="Center"/>
                 <Grid>
@@ -37,16 +30,16 @@
                     </Grid.ColumnDefinitions>
                     <Label Grid.Column="0" Text="₴1" FontSize="Medium" FontAttributes="Bold" HorizontalTextAlignment="Start" />
                     <Label Grid.Column="1" Text="€" FontSize="Medium" FontAttributes="Bold" HorizontalTextAlignment="End" />
-                    <Label Grid.Column="2" Text="{Binding EUR}" FontSize="Medium" FontAttributes="Bold" HorizontalTextAlignment="Start" />
+                    <Label Grid.Column="2" x:Name="Current_EUR" Text="" FontSize="Medium" FontAttributes="Bold" HorizontalTextAlignment="Start" />
                 </Grid>
-                <Entry x:Name="Current_EUR" Text="" Keyboard="Numeric"/>
+                <Entry x:Name="New_Target_EUR" Text="" Keyboard="Numeric"/>
                 <Button Margin="0,10,0,0" Text="Обновить значение"
-                        Command="{Binding SetEURCommand}"
-                        CommandParameter="{x:Reference Current_EUR}"
+                        Clicked="Button_Clicked"
                         BackgroundColor="{StaticResource Primary}"
                         TextColor="White" />
                 <Label Text="Текущее значение" FontSize="Title" HorizontalOptions="Center"/>
-                <Label Text="{Binding Less_EUR}" FontSize="Title" HorizontalOptions="Center"/>
+                <Label x:Name="Target_EUR" Text="" FontSize="Title" HorizontalOptions="Center"/>
+                <Image x:Name="Current_Image" Source="fail_icon.png"/>
             </StackLayout>
         </ScrollView>
     </Grid>
