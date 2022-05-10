@@ -1,0 +1,16 @@
+{
+  "Version": 1,
+  "ProjectMap": {
+    "15e24d9e-d7cc-462e-9c68-f2625991a9ed": {
+      "ProjectGuid": "15e24d9e-d7cc-462e-9c68-f2625991a9ed",
+      "DisplayName": "MoneyHoneyApp.Android",
+      "ColorIndex": 0
+    },
+    "ae6a388a-8a56-4365-a5e0-2ec2e2773a88": {
+      "ProjectGuid": "ae6a388a-8a56-4365-a5e0-2ec2e2773a88",
+      "DisplayName": "MoneyHoneyApp",
+      "ColorIndex": 1
+    }
+  },
+  "NextColorIndex": 2
+}

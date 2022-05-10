@@ -38,7 +38,9 @@ namespace MoneyHoneyApp.ViewModels
         public void UpdateLessEUR(object newValue)
         {
             var textBox = (Entry)newValue;
-            textBox.Unfocus();
+            if (string.IsNullOrWhiteSpace(textBox.Text))
+                return;
+
             Less_EUR = Convert.ToDouble(textBox.Text);
             Application.Current.Properties["Less_EUR"] = Less_EUR;
             textBox.Text = "";
@@ -61,16 +63,16 @@ namespace MoneyHoneyApp.ViewModels
                     var jsonString = await response.Content.ReadAsStringAsync();
                     RevolutResult myDeserializedClass = JsonConvert.DeserializeObject<RevolutResult>(jsonString);
                     EUR = myDeserializedClass.rate.rate;
-                    CheckValue();
+                    CheckValue(myDeserializedClass.rate.rate);
                 }
 
                 Thread.Sleep(UPDATE_PERIOD);
             }
         }
 
-        private void CheckValue()
+        private void CheckValue(double newValue)
         {
-            if (EUR <= Less_EUR)
+            if (newValue <= Less_EUR)
             {
 
             }
