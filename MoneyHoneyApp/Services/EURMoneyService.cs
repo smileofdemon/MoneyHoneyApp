@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using Plugin.LocalNotification;
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,33 +14,52 @@ namespace MoneyHoneyApp.Services
     {
         private double _currentRate;
         private double _targetRate;
-        private bool _isUpdate = true;
-        private readonly int _updatePeriod = 1000; // update data every 1 second
+        private List<bool> _isUpdateList = new List<bool>() { true };
+        private int _lastIndex = 0;
+        private bool _isMatched = false;
+        private int _updatePeriod = 1000; // update data every 1 second
         private readonly Action _onUpdateCurrentRate;
-        private readonly Image _image;
 
-        public EURMoneyService(Action onUpdateCurrentRate, Image image)
+        public EURMoneyService(Action onUpdateCurrentRate)
         {
             if (Application.Current.Properties.ContainsKey("TARGET_EUR"))
                 _targetRate = Convert.ToDouble(Application.Current.Properties["TARGET_EUR"]);
+
+            _onUpdateCurrentRate = onUpdateCurrentRate;
+            Context.OnSettingUpdated = NewWork;
+            NewWork();
+        }
+
+        private void NewWork()
+        {
             if (Application.Current.Properties.ContainsKey("UPDATE_PERIOD"))
                 _updatePeriod = Convert.ToInt32(Application.Current.Properties["UPDATE_PERIOD"]) * 1000;
 
-            _image = image;
-            _onUpdateCurrentRate = onUpdateCurrentRate;
-            _ = Task.Run(() => GetValuesAsync());
+            if (_lastIndex > 1000)
+            {
+                _isUpdateList[_lastIndex] = false;
+                _isUpdateList = new List<bool>() { true };
+                _lastIndex = 0;
+            }
+            _isUpdateList[_lastIndex] = false;
+            _isUpdateList.Add(true);
+            _lastIndex++;
+
+            _ = Task.Run(() => GetValuesAsync(_lastIndex));
         }
 
+        public bool IsMatched() => _isMatched;
         public double GetCurrentRate() => _currentRate;
+        public double GetTargetRate() => _targetRate;
         public void SetTargetRate(double newTargetRate)
         {
             _targetRate = newTargetRate;
             Application.Current.Properties["TARGET_EUR"] = _targetRate;
         }
 
-        private async Task GetValuesAsync()
+        private async Task GetValuesAsync(int index)
         {
-            while (_isUpdate)
+            while (_isUpdateList[index])
             {
                 var url = @"https://www.revolut.com/api/exchange/quote";
                 var parameters = @"?amount=100&country=DE&fromCurrency=UAH&isRecipientAmount=false&toCurrency=EUR";
@@ -54,8 +74,8 @@ namespace MoneyHoneyApp.Services
                     var jsonString = await response.Content.ReadAsStringAsync();
                     RevolutResult myDeserializedClass = JsonConvert.DeserializeObject<RevolutResult>(jsonString);
                     _currentRate = myDeserializedClass.rate.rate;
-                    _onUpdateCurrentRate();
                     CheckValue(myDeserializedClass.rate.rate);
+                    _onUpdateCurrentRate();
                 }
 
                 Thread.Sleep(_updatePeriod);
@@ -64,10 +84,9 @@ namespace MoneyHoneyApp.Services
 
         private void CheckValue(double newValue)
         {
-            if (newValue <= _targetRate)
+            _isMatched = newValue <= _targetRate;
+            if (_isMatched)
             {
-                if(_image.Source.ToString() != "File: success_icon.png")
-                    _image.Source = "success_icon.png";
                 var notification = new NotificationRequest
                 {
                     BadgeNumber = 1,
@@ -78,9 +97,6 @@ namespace MoneyHoneyApp.Services
                 };
                 NotificationCenter.Current.Show(notification);
             }
-            else
-                if(_image.Source.ToString() != "File: fail_icon.png")
-                    _image.Source = "fail_icon.png";
         }
     }
 }

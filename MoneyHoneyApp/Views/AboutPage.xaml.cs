@@ -32,6 +32,7 @@ namespace MoneyHoneyApp.Views
         {
             Application.Current.Properties["UPDATE_PERIOD"] = SliderMain.Value;
             DisplayAlert("Уведомление", "Сохранено", "ОK");
+            Context.OnSettingUpdated();
         }
     }
 }

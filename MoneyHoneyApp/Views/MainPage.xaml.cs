@@ -13,11 +13,26 @@ namespace MoneyHoneyApp.Views
         public MainPage()
         {
             InitializeComponent();
+            CreateNewService();
+        }
+
+        public void CreateNewService()
+        {
             Entry entry = new Entry();
             Binding binding = new Binding { Source = entry, Path = "Text" };
+            Binding bindingCheckBox = new Binding { Source = entry, Path = "IsEnabled" };
+
             Current_EUR.SetBinding(Label.TextProperty, binding);
-            eur = new EURMoneyService(() => entry.Text = eur.GetCurrentRate().ToString(), Current_Image);
-            Target_EUR.Text = eur.GetCurrentRate().ToString();
+            IsMatchedBox.SetBinding(CheckBox.IsCheckedProperty, bindingCheckBox);
+
+            eur = new EURMoneyService(() => UpdateData(entry));
+            Target_EUR.Text = eur.GetTargetRate().ToString();
+        }
+
+        public void UpdateData(Entry entry)
+        {
+            entry.Text = eur.GetCurrentRate().ToString();
+            entry.IsEnabled = eur.IsMatched();
         }
 
         private void Button_Clicked(object sender, EventArgs e)
@@ -29,7 +44,7 @@ namespace MoneyHoneyApp.Views
             eur.SetTargetRate(targetEUR);
             Target_EUR.Text = New_Target_EUR.Text;
             New_Target_EUR.Text = "";
-            DisplayAlert("Уведомление", "Курс успешно задан", "ОK");
+            //DisplayAlert("Уведомление", "Курс успешно задан", "ОK");
         }
     }
 }
